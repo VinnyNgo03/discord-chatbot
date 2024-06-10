@@ -13,7 +13,7 @@ TOKEN = os.getenv("TOKEN")
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
-CHECKPOINT = "microsoft/DialoGPT-medium"
+CHECKPOINT = "microsoft/DialoGPT-large"
 tokenizer = AutoTokenizer.from_pretrained(CHECKPOINT)
 model = AutoModelForCausalLM.from_pretrained(CHECKPOINT, pad_token_id=tokenizer.eos_token_id).to(DEVICE)
 
