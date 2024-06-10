@@ -1,1 +1,3 @@
-Discord Chatbot using generative ai from DiabloGPT-medium model.
+Discord Chatbot utilizing text generated from DialoGPT.
+
+LLM model loaded using Hugging Face Transformers library.
