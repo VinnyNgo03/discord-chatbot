@@ -6,7 +6,7 @@ import torch
 import numpy as np
 import pandas as pd
 from transformers import AutoTokenizer, AutoModelForCausalLM
-
+import random
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
@@ -19,8 +19,11 @@ model = AutoModelForCausalLM.from_pretrained(CHECKPOINT, pad_token_id=tokenizer.
 
 def generate_response(input):
     _input = tokenizer.encode(input + tokenizer.eos_token, return_tensors="pt").to(DEVICE)
-    output = model.generate(_input, max_length=200, pad_token_id=tokenizer.eos_token_id)
+    output = model.generate(_input, max_length=200, pad_token_id=tokenizer.eos_token_id, do_sample=True, top_k=3)
     return (tokenizer.decode(output[:, _input.shape[-1]:][0], skip_special_tokens=True))
+
+def roll(number):
+    return random.randint(1, int(number)) if number.isdigit() and number != "0" else "Cannot Roll"
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -28,17 +31,20 @@ class MyClient(discord.Client):
         print('------')
 
     
-
     async def on_message(self, message):
         if message.author.id == self.user.id:
             return
 
-        if message.content.startswith('!'):
-            user_message = str(message.content)
-            user_message = user_message[1:]
+        user_message = str(message.content)
+
+        if user_message.startswith('!c'):
+            user_message = user_message[3:]
             bot_response = generate_response(user_message)
             await message.channel.send(bot_response)
 
+        if user_message.startswith("!r"):
+            user_message = user_message[3:]
+            await message.channel.send(str(roll(user_message)))
 
 intents = discord.Intents.default()
 intents.message_content = True
