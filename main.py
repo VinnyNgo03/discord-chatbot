@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from discord import Intents, Client, Message
 import discord
+from discord.ext import commands
 import torch
 import numpy as np
 import pandas as pd
@@ -65,34 +66,28 @@ def generate_response(input):
 def roll(number):
     return random.randint(1, int(number)) if number.isdigit() and number != "0" else "Cannot Roll"
 
-class MyClient(discord.Client):
-    async def on_ready(self):
-        print(f'Logged in as {self.user} (ID: {self.user.id})')
-        print('------')
 
-    
-    async def on_message(self, message):
-        if message.author.id == self.user.id:
-            return
-
-        user_message = str(message.content)
-
-        if user_message.startswith('!chat'):
-            user_message = user_message[6:]
-            bot_response = generate_response(user_message)
-            await message.channel.send(bot_response)
-
-        if user_message.startswith('!diag'):
-            user_message = user_message[6:]
-            bot_response = generate_dialog(user_message)
-            await message.channel.send(bot_response)
-
-        if user_message.startswith("!roll"):
-            user_message = user_message[6:]
-            await message.channel.send(str(roll(user_message)))
 
 intents = discord.Intents.default()
 intents.message_content = True
+bot = commands.Bot(command_prefix='!', intents=intents)
 
-client = MyClient(intents=intents)
-client.run(TOKEN)
+@bot.event
+async def on_ready():
+    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
+    print('------')
+
+@bot.command()
+async def chat(ctx, *, arg: generate_response):
+    await ctx.send(arg)
+
+@bot.command()
+async def diag(ctx, *, arg: generate_dialog):
+    await ctx.send(arg)
+
+@bot.command()
+async def roll(ctx, arg: roll):
+    await ctx.send(arg)
+
+
+bot.run(TOKEN)
