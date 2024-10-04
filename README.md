@@ -1,3 +1,9 @@
-Discord Chatbot using a fine-tuned Dialogpt-Medium model from the Hugging Face Transformers library. The chatbot sends generated dialogue in response to text from Discord.
+Discord Conversational Chatbot using running on meta-llama/Llama-3.2-1B-Instruct sourced from Hugging Face.
 
-The model was fine-tuned using transcripts from Season 1 of Regular Show. The data was conversational dialogue involving the character "Rigby".
+Chatbot accesses Discord using a specified token id loaded from a .env file. 
+
+When a user sends a message through Discord, the chatbot will send a reply message to the same channel. To send a message to the bot, send a message through Discord beginning with !c.
+
+Example input:
+
+!c Hi, How are you.

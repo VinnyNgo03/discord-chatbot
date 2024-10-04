@@ -56,11 +56,11 @@ def generate_response(input):
         top_k=50,
     )
 
-    response = outputs[0]["generated_text"][-1] # type: ignore
+    response = outputs[0]["generated_text"][-1] 
 
-    chat_history.append(response) # type: ignore
+    chat_history.append(response) 
 
-    return (response["content"]) # type: ignore
+    return (response["content"]) 
 
 
 # Discord API
@@ -70,16 +70,16 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f'Logged in as {bot.user} (ID: {bot.user.id})') # type: ignore
+    print(f'Logged in as {bot.user} (ID: {bot.user.id})') 
     print('------')
 
 # Discord Chat Command: (!c)
 @bot.command()
-async def c(ctx, *, arg): # type: ignore
+async def c(ctx, *, arg): 
     output = generate_response(arg)
     with open('chat_history.txt', 'a') as file:
         file.write(str(ctx.author) + ',' + arg + '\n')
         file.write(str(bot.user) + ',' + output + '\n')
     await ctx.send(output)
 
-bot.run(TOKEN) # type: ignore
+bot.run(TOKEN) 
