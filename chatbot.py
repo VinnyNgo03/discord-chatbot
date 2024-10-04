@@ -3,9 +3,18 @@ from dotenv import load_dotenv
 import discord
 from discord.ext import commands
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+
+# Langchain
+from langchain_core.chat_history import (
+    BaseChatMessageHistory,
+    InMemoryChatMessageHistory,
+)
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 
 load_dotenv()
+# Global Variables
 TOKEN = os.getenv("TOKEN")
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
@@ -18,35 +27,43 @@ model = AutoModelForCausalLM.from_pretrained(
     device_map='auto'
 )
 
+# Huggingface Pipeline
+pipe = pipeline(
+    "text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    torch_dtype=torch.bfloat16,
+    device_map="auto"
+)
+
+# Chat History
+chat_history = [
+    {"role": "system", "content": "You are a cheerful conversational chatbot."}
+]
+
+# Generation
 def generate_response(input):
-    messages = [
-        {"role": "system", "content": "You are a conversational chatbot."},
-        {"role": "user", "content": str(input)}
-    ]
 
-    input_ids = tokenizer.apply_chat_template(
-        messages,
-        add_generation_prompt=True,
-        return_tensors="pt"
-    ).to(model.device) # type: ignore
+    global chat_history
 
-    terminators = [
-        tokenizer.eos_token_id,
-        tokenizer.convert_tokens_to_ids("<|eot_id|>")
-    ]
+    chat_history.append({"role": "user", "content": str(input)})
 
-    outputs = model.generate(
-        input_ids,
+    outputs = pipe(
+        chat_history,
         max_new_tokens=256,
-        eos_token_id=terminators,
         do_sample=True,
-        temperature=0.2,
-        top_p=0.9
+        temperature=0.6,
+        top_k=50,
     )
 
-    response = outputs[0][input_ids.shape[-1]:]
-    return (tokenizer.decode(response, skip_special_tokens=True))
+    response = outputs[0]["generated_text"][-1] # type: ignore
 
+    chat_history.append(response) # type: ignore
+
+    return (response["content"]) # type: ignore
+
+
+# Discord API
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -56,8 +73,13 @@ async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})') # type: ignore
     print('------')
 
+# Discord Chat Command: (!c)
 @bot.command()
-async def c(ctx, *, arg: generate_response): # type: ignore
-    await ctx.send(arg)
+async def c(ctx, *, arg): # type: ignore
+    output = generate_response(arg)
+    with open('chat_history.txt', 'a') as file:
+        file.write(str(ctx.author) + ',' + arg + '\n')
+        file.write(str(bot.user) + ',' + output + '\n')
+    await ctx.send(output)
 
 bot.run(TOKEN) # type: ignore
