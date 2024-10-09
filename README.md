@@ -1,4 +1,4 @@
-Discord Conversational Chatbot using running on meta-llama/Llama-3.2-1B-Instruct sourced from Hugging Face.
+Discord Conversational Chatbot is running on meta-llama/Llama-3.2-1B-Instruct sourced from Hugging Face.
 
 Chatbot accesses Discord using a specified token id loaded from a .env file. 
 
